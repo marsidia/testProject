@@ -1,32 +1,29 @@
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, View } from "react-native";
 import { useFetchProductsQuery } from "../store";
 import SearchItem from "../components/SearchItem";
+import { useState } from "react";
 
-function ResultsScreen() {
-  const { data, error, isFetching } = useFetchProductsQuery("disjoncteur");
-  let content;
-  if (isFetching) {
-    content = (
-      <View>
-        <Text>fetching</Text>
-      </View>
-    );
-  } else if (error) {
-    content = (
-      <View>
-        <Text>Error</Text>
-      </View>
-    );
-  } else {
-    content = (
-      <FlatList
-        data={data}
-        renderItem={(itemData) => {
-          return <SearchItem />;
-        }}
-      />
-    );
-  }
+function ResultsScreen({ route }) {
+  const [page, setPage] = useState(1);
+  const { title } = route.params;
+  const { data } = useFetchProductsQuery({
+    page,
+    title,
+  });
+
+  let content = (
+    <FlatList
+      contentContainerStyle={styles.content}
+      onEndReachedThreshold={0.3}
+      onEndReached={() => {
+        setPage(page + 1);
+      }}
+      data={data ? data.results : []}
+      renderItem={(itemData) => {
+        return <SearchItem item={itemData.item} />;
+      }}
+    />
+  );
 
   return <View style={styles.container}>{content}</View>;
 }
@@ -34,11 +31,10 @@ function ResultsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
   },
-  text: {},
 });
 
 export default ResultsScreen;
